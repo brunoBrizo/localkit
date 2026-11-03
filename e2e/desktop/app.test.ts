@@ -63,6 +63,8 @@ after(async () => {
 
 test('opens LocalKit with every tool', async () => {
   await waitFor('return document.title', 'LocalKit');
+  // The title is in the static HTML; the sidebar appears once React renders.
+  await waitFor("return document.querySelectorAll('nav button').length", tools.length);
   const names = await run("return [...document.querySelectorAll('nav button')].map((b) => b.textContent)");
   assert.deepEqual(names, tools.map((t) => t.name));
 });
