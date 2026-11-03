@@ -1,0 +1,17 @@
+[package]
+name = "localkit"
+version = "0.1.0"
+description = "Offline, paste-safe developer toolbox"
+authors = ["Bruno Brizolara"]
+license = "LicenseRef-Proprietary"
+edition = "2024"
+rust-version = "1.90"
+publish = false
+
+[build-dependencies]
+tauri-build = { version = "2.7.4", features = [] }
+
+# Keep this list short: scripts/check-no-network.sh fails the build if an
+# HTTP client or a network plugin shows up in the dependency tree.
+[dependencies]
+tauri = { version = "2.12.5", features = [] }

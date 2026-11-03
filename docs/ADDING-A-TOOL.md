@@ -8,7 +8,7 @@ A tool is one entry in the `tools` array in [`src/tools.ts`](../src/tools.ts), p
 2. **Write the function** in `src/tools.ts`. If it's longer than one line, make it a named helper above the `tools` array. Comment anything that isn't obvious, such as heuristics, limits and accepted formats.
 3. **Register it** by adding `{ id, name, run }` to the `tools` array. Put pairs next to each other (encode, then decode).
 4. **Test it** in `src/tools.test.ts` (see [required tests](#required-tests)).
-5. **Run** `npm test` and `npm run build`, then try it in `npm run dev`.
+5. **Run** `npm test`, `npm run build` and `npm run test:e2e`, then try it in `npm run dev`. The e2e suite reads the tool list from the registry, so a new tool needs no e2e change unless it changes the UI.
 6. **Update the docs:** the tool table in the [README](../README.md#tools), the checkbox in [ROADMAP.md](../ROADMAP.md), and an "Added" line under "Unreleased" in [CHANGELOG.md](../CHANGELOG.md).
 
 ## Naming

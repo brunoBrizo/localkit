@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- LocalKit app icon. Regenerate the other files with: npx tauri icon src-tauri/icons/source.svg -->
+  <rect x="64" y="64" width="896" height="896" rx="200" fill="#1c1c1a"/>
+  <g fill="none" stroke="#ffffff" stroke-width="72" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M400 300 C330 300 330 340 330 400 L330 460 C330 500 300 512 270 512 C300 512 330 524 330 564 L330 624 C330 684 330 724 400 724"/>
+    <path d="M624 300 C694 300 694 340 694 400 L694 460 C694 500 724 512 754 512 C724 512 694 524 694 564 L694 624 C694 684 694 724 624 724"/>
+  </g>
+  <circle cx="512" cy="512" r="56" fill="#2f6fdf"/>
+</svg>

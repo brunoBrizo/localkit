@@ -2,7 +2,7 @@
 
 An offline, paste-safe developer toolbox: format JSON, encode Base64 and URLs, convert timestamps and generate UUIDs in one fast app that never touches the network.
 
-**Status:** early (v0.1.0). The web shell and 8 tools work. The desktop app for macOS, Windows and Linux is planned; see the [roadmap](ROADMAP.md).
+**Status:** early (v0.1.0). The web app and 8 tools work, and the desktop app (Tauri) builds for macOS, Windows and Linux. Signed installers, the command palette and the global shortcut are next; see the [roadmap](ROADMAP.md).
 
 ## Why paste-safe
 
@@ -26,7 +26,9 @@ default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self' '
 
 1. Run `npm run build`, then `npm run preview`, and open <http://localhost:4173>.
 2. Open DevTools → Network and use a few tools. Every request goes to `localhost:4173`.
-3. In the DevTools console, run `fetch('https://example.com')`. It fails with a Content-Security-Policy error.
+3. In the DevTools console, run `fetch('https://example.com', { mode: 'no-cors' })`. Without the policy it would succeed; with it, it fails with a Content-Security-Policy error.
+
+`npm run test:e2e` runs these checks automatically in Chromium and WebKit. The desktop app uses the same policy and adds its own guards; see [docs/PRIVACY.md](docs/PRIVACY.md#the-desktop-app).
 
 ## Tools
 
@@ -57,6 +59,18 @@ npm run dev
 
 Then open <http://localhost:5173>.
 
+### Desktop app
+
+The desktop app also needs Rust (stable, 1.90 or later) and the [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/) for your OS: Xcode Command Line Tools on macOS, WebView2 and the MSVC build tools on Windows, and the WebKitGTK development packages on Linux.
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh   # installs Rust
+npm run tauri dev      # desktop window on top of the dev server, with hot reload
+npm run tauri build    # release app and installers in src-tauri/target/release/bundle/
+```
+
+On macOS the build produces `LocalKit.app` and a `.dmg`. The builds aren't signed yet (Sprint 3), so macOS asks for confirmation the first time you open one.
+
 ## Scripts
 
 | Command | What it does |
@@ -65,8 +79,14 @@ Then open <http://localhost:5173>.
 | `npm test` | Runs the unit tests once (Vitest). |
 | `npm run build` | Typechecks (`tsc --noEmit`), then builds to `dist/` with the CSP. |
 | `npm run preview` | Serves `dist/` at <http://localhost:4173> so you can check the built app. |
+| `npm run test:e2e` | Builds, serves and runs the end-to-end tests in Chromium and WebKit (Playwright). First run: `npx playwright install chromium webkit`. |
+| `npm run tauri dev` | Runs the desktop app against the dev server. |
+| `npm run tauri build` | Builds the desktop app and installers. |
+| `npm run test:desktop` | Desktop end-to-end tests against the release build. Linux only; needs `tauri-driver` and `webkit2gtk-driver` (see [`e2e/desktop/app.test.ts`](e2e/desktop/app.test.ts)). |
+| `npm run check:no-network` | Fails if a network-capable crate or plugin enters the desktop app. Needs Rust. |
+| `cargo test --manifest-path src-tauri/Cargo.toml` | Rust unit tests for the desktop app's navigation guard. |
 
-CI runs `npm ci`, `npm test` and `npm run build` on every push and pull request ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on every push and pull request. The `test` job runs the unit tests, the build, the no-network check and the web end-to-end tests. The `desktop` job builds the app on macOS, Windows and Linux, uploads the installers as artifacts and, on Linux, runs the desktop end-to-end tests.
 
 ## Project structure
 
@@ -77,10 +97,21 @@ CI runs `npm ci`, `npm test` and `npm run build` on every push and pull request 
 ├── src/
 │   ├── tools.ts             every tool, as a function from text to text
 │   ├── tools.test.ts        unit tests for every tool
+│   ├── csp.test.ts          web and desktop must use the same CSP
 │   ├── main.tsx             the whole UI: tool sidebar, input and output
 │   └── styles.css           light and dark theme, narrow-screen layout
+├── src-tauri/               desktop app (Tauri 2)
+│   ├── tauri.conf.json      window, installers and the same CSP
+│   ├── src/main.rs          navigation guard and its unit tests
+│   └── icons/               app icons, generated from icons/source.svg
+├── e2e/
+│   ├── web/                 Playwright tests against the production build
+│   └── desktop/             WebDriver tests against the desktop app (Linux)
+├── scripts/
+│   └── check-no-network.sh  fails on network-capable Rust crates or plugins
+├── playwright.config.ts     web e2e config (Chromium and WebKit)
 ├── docs/                    architecture, privacy, adding a tool, product notes
-├── .github/workflows/ci.yml install, test and build on every push and PR
+├── .github/workflows/ci.yml tests, builds and desktop installers on every push and PR
 ├── ROADMAP.md               milestones and sprints
 ├── CHANGELOG.md             release notes
 ├── CLAUDE.md                rules for AI coding sessions
@@ -97,7 +128,7 @@ CI runs `npm ci`, `npm test` and `npm run build` on every push and pull request 
 
 ## Roadmap
 
-- **v0.2 Desktop:** Tauri app for macOS, Windows and Linux, with a command palette, global shortcut and signed builds.
+- **v0.2 Desktop (in progress):** Tauri app for macOS, Windows and Linux (Sprint 1 done), then a command palette, global shortcut and signed builds.
 - **v0.3 Tools:** 23 more tools on a richer tool contract.
 - **v1.0 Paid launch:** one-time and team licenses, validated offline.
 

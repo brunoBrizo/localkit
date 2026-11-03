@@ -8,7 +8,7 @@ LocalKit is paste-safe: what you paste never leaves your machine and is never sa
 2. Runs the selected tool on it, in the same page, every time the input changes.
 3. Shows the result in the output box.
 
-That is all. Reloading or closing the page discards the input and the output.
+That is all. Reloading the page or closing the app discards the input and the output.
 
 ## What the app never does
 
@@ -34,7 +34,7 @@ default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self' '
 
 ### What the policy does not cover
 
-`form-action` and `base-uri` don't fall back to `default-src`, and CSP doesn't restrict navigation (links, `window.location`). The app has no forms, no links and no code that navigates, so there is no way out today. Planned for v0.3 (Sprint 4): add `form-action 'none'; base-uri 'none'`. The desktop app (planned, v0.2) will also refuse navigation to any URL outside the app.
+`form-action` and `base-uri` don't fall back to `default-src`, and CSP doesn't restrict navigation (links, `window.location`). The app has no forms, no links and no code that navigates, so there is no way out today. Planned for v0.3 (Sprint 4): add `form-action 'none'; base-uri 'none'`. The desktop app already refuses navigation to any URL outside the app (see [below](#the-desktop-app)).
 
 ### Why the dev server is different
 
@@ -62,16 +62,40 @@ default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self' '
 4. In the DevTools console, run:
 
    ```js
-   fetch('https://example.com')
+   fetch('https://example.com', { mode: 'no-cors' })
    ```
 
-   It fails with `TypeError: Failed to fetch`. In Chrome, the console also logs: `Connecting to 'https://example.com/' violates the following Content Security Policy directive: "connect-src 'none'". The action has been blocked.`
+   Without the policy, this would succeed with an opaque response. With it, it fails with `TypeError: Failed to fetch`, and Chrome's console logs: `Connecting to 'https://example.com/' violates the following Content Security Policy directive: "connect-src 'none'". The action has been blocked.`
 
 5. Check the source for network and storage APIs. This prints nothing:
 
    ```bash
    grep -rnE "fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon|localStorage|sessionStorage|indexedDB|document\.cookie" src
    ```
+
+6. Run the automated checks, which do steps 2 to 4 in Chromium and WebKit:
+
+   ```bash
+   npm run test:e2e
+   ```
+
+## The desktop app
+
+The desktop app (`src-tauri/`) shows the same built files in a native window, with the same rules:
+
+- **Same policy.** `src-tauri/tauri.conf.json` sets the exact CSP string from `vite.config.ts`, and `npm test` fails if they ever differ.
+- **No access to the system from the page.** The app grants the webview no Tauri permissions and has no commands, so page code can't call into the native side.
+- **No network on the native side.** The only Rust dependency is `tauri` itself. `npm run check:no-network` fails if an HTTP client, a TLS stack or a network plugin enters the dependency tree for any desktop platform.
+- **No navigation.** The window refuses to load any URL that isn't the app's own, and refuses to open other windows.
+
+To check it yourself:
+
+```bash
+npm run check:no-network
+cargo test --manifest-path src-tauri/Cargo.toml
+```
+
+On Linux, the desktop end-to-end tests also drive the real app and check that a `fetch` and a navigation to another site are both refused (`npm run test:desktop`, see [ARCHITECTURE.md](ARCHITECTURE.md#testing)). CI runs all of these on every push.
 
 ## What will be saved (planned)
 
@@ -81,7 +105,7 @@ The desktop app will save only settings: the last tool you used and the window s
 
 | Feature | Milestone | Rule |
 |---|---|---|
-| Desktop app (Tauri) | v0.2 | Same CSP as the web build, plus only Tauri's in-process IPC origin if it's needed. No network-capable Tauri plugins or Rust crates. No navigation outside the app. |
+| Desktop shortcuts and settings | v0.2 | Only the Tauri plugins these need. The CSP may add Tauri's in-process IPC origin and nothing else. |
 | Clipboard detection | v0.2 | Off by default. When you turn it on, LocalKit reads the clipboard only when its window opens, only to pick a tool. The content is treated like pasted input: memory only. |
 | Updates | v0.2 | No in-app update check. "Check for updates" opens the download page in your default browser; LocalKit itself makes no request. |
 | Licensing | v1.0 | License keys are checked offline against a public key built into the app. No activation server. Keys contain no name or email. Buying a license happens on the website, outside the app. |

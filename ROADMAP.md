@@ -17,7 +17,7 @@ Legend: `[x]` done, `[ ]` planned. *(added)* marks items added after the first r
 | Milestone | Sprints | Outcome |
 |---|---|---|
 | v0.1 Seed | 0 | ✅ Web shell, 8 tools, network-blocking CSP, tests, CI |
-| v0.2 Desktop | 1–3 | Signed desktop app for macOS, Windows and Linux, keyboard-first |
+| v0.2 Desktop | 1–3 | Signed desktop app for macOS, Windows and Linux, keyboard-first (Sprint 1 ✅) |
 | v0.3 Tools | 4–8 | Tool contract v2 and 23 more tools |
 | v1.0 Paid launch | 9–10 | Offline licensing, localization, landing page |
 
@@ -39,17 +39,18 @@ Legend: `[x]` done, `[ ]` planned. *(added)* marks items added after the first r
 
 **Goal:** LocalKit as a signed desktop app on all three platforms, with the same no-network guarantee as the web build.
 
-### Sprint 1: Tauri shell
+### Sprint 1: Tauri shell ✅
 
-- [ ] Wrap the web shell in Tauri 2 (macOS, Windows, Linux)
+- [x] Wrap the web shell in Tauri 2 (macOS, Windows, Linux)
   - The app opens on all three platforms from CI-built artifacts.
   - The webview loads the bundled `dist/`, never a remote URL.
-  - Tauri's CSP matches the web build's. The only allowed addition is Tauri's in-process IPC origin, if commands need it.
+  - Tauri's CSP matches the web build's. The only allowed addition is Tauri's in-process IPC origin, if commands need it. (Not needed yet: identical string, checked by `src/csp.test.ts`.)
   - No network-capable Tauri plugins (HTTP, updater, WebSocket) or Rust HTTP crates.
   - Navigation to any URL outside the app is refused.
-- [ ] CI builds desktop artifacts for macOS, Windows and Linux *(added)*
-- [ ] CI step that fails if a network-capable crate or plugin enters the dependency tree *(added)*
-- [ ] README documents the Rust toolchain and the desktop commands *(added)*
+- [x] CI builds desktop artifacts for macOS, Windows and Linux *(added)*
+- [x] CI step that fails if a network-capable crate or plugin enters the dependency tree *(added)*
+- [x] README documents the Rust toolchain and the desktop commands *(added)*
+- [x] Unit tests for the navigation guard and CSP parity; web e2e in Chromium and WebKit; desktop e2e on Linux *(added)*
 
 ### Sprint 2: Keyboard-first
 
