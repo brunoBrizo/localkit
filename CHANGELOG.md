@@ -9,6 +9,10 @@ Notable changes to LocalKit. The format follows [Keep a Changelog](https://keepa
 - Documentation: architecture, privacy, adding a tool, product notes, and a sprint-based roadmap.
 - JSDoc on `Tool` and `runTool`, and comments on the timestamp heuristic and Base64 decoding. No behavior change.
 
+### Changed
+
+- Vitest upgraded from 3 to 5, which clears the npm audit advisories in its dependencies (dev-only, not shipped).
+
 ## [0.1.0] - 2026-11-03
 
 ### Added
