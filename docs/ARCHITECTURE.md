@@ -8,7 +8,7 @@ index.html ──► src/main.tsx (UI) ──► src/tools.ts (tools + runTool)
 vite.config.ts ── adds the CSP to index.html at build time
 ```
 
-Stack: Vite 7, React 19, TypeScript 5 (strict), Vitest 3, Node.js 24. Runtime dependencies: `react` and `react-dom` only.
+Stack: Vite 7, React 19, TypeScript 5 (strict), Vitest 5, Node.js 24. Runtime dependencies: `react` and `react-dom` only.
 
 ## The tool contract
 
