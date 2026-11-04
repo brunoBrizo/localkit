@@ -2,13 +2,13 @@
 
 An offline, paste-safe developer toolbox: format JSON, encode Base64 and URLs, convert timestamps and generate UUIDs in one fast app that never touches the network.
 
-**Status:** early (v0.1.0). The web app and 8 tools work, and the desktop app (Tauri) builds for macOS, Windows and Linux. Signed installers, the command palette and the global shortcut are next; see the [roadmap](ROADMAP.md).
+**Status:** early (v0.1.0). The web app and 8 tools work, and the desktop app (Tauri) builds for macOS, Windows and Linux. Next: making the no-network checks fail closed and fixing tool edge cases (Sprint 2), then tool contract v2, the command palette and signed installers; see the [roadmap](ROADMAP.md).
 
 ## Why paste-safe
 
 Developers paste tokens, API payloads and logs into online formatters every day, and many companies forbid it. LocalKit keeps what you paste on your machine:
 
-- **No network.** The production build stops the app from making any network request.
+- **No network.** The production build blocks every `fetch`, XHR, WebSocket, EventSource and beacon, and every remote script, style, font, frame and image. [PRIVACY.md](docs/PRIVACY.md#what-the-policy-does-not-cover) lists what the policy doesn't cover.
 - **No storage.** Input lives in memory only. Reload or close the page and it's gone.
 - **No accounts, telemetry, analytics or crash reporting.** There is nothing to opt out of.
 
@@ -41,12 +41,13 @@ default-src 'self'; connect-src 'none'; img-src 'self' data:; style-src 'self' '
 | URL encode / decode | Percent-encodes or decodes a URL component | ✅ Available |
 | Timestamp convert | Unix seconds, milliseconds or a date string to ISO 8601 (UTC), seconds and milliseconds | ✅ Available |
 | UUID v4 | Generates 1 to 1000 random UUIDs; type how many | ✅ Available |
+| Paste-safe inspectors: JWT decoder, redact secrets before sharing, HAR viewer and sanitizer, SAML and OIDC decoder, X.509 / PEM / CSR decoder, Kubernetes Secret decoder | Decode and redact only: nothing verifies, signs or replays anything | Planned (v0.3) |
 | Data formats: JSON ↔ YAML, JSON ↔ CSV, JSON to TypeScript, JSON path, query string ↔ JSON | | Planned (v0.3) |
-| Text: diff, regex tester, case converter, line tools, HTML entities, lorem ipsum | | Planned (v0.3) |
+| Text: diff, JSON structural diff, regex tester, case converter, line tools, HTML entities, lorem ipsum | | Planned (v0.3) |
 | Converters: cron, number base, color, chmod, byte size, time zone | | Planned (v0.3) |
-| Generators and viewers: hashes, JWT decoder, ULID and nanoid, QR code, SQL formatter, Markdown preview | | Planned (v0.3) |
+| Generators and viewers: hashes (as checksums), ULID, nanoid and UUID v7, QR code, SQL formatter, Markdown preview | | Planned (v0.3) |
 
-Known limitations, such as JSON integers above 2^53 losing precision, are listed in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#known-limitations).
+Known limitations, such as JSON integers above 2^53 losing precision and the no-network check passing when `cargo` is missing, are listed in [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#known-limitations).
 
 ## Quick start
 
@@ -83,10 +84,10 @@ On macOS the build produces `LocalKit.app` and a `.dmg`. The builds aren't signe
 | `npm run tauri dev` | Runs the desktop app against the dev server. |
 | `npm run tauri build` | Builds the desktop app and installers. |
 | `npm run test:desktop` | Desktop end-to-end tests against the release build. Linux only; needs `tauri-driver` and `webkit2gtk-driver` (see [`e2e/desktop/app.test.ts`](e2e/desktop/app.test.ts)). |
-| `npm run check:no-network` | Fails if a network-capable crate or plugin enters the desktop app. Needs Rust. |
+| `npm run check:no-network` | Fails if a network-capable crate or plugin enters the desktop app. Needs Rust (`cargo` on your `PATH`). |
 | `cargo test --manifest-path src-tauri/Cargo.toml` | Rust unit tests for the desktop app's navigation guard. |
 
-CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on every push and pull request. The `test` job runs the unit tests, the build, the no-network check and the web end-to-end tests. The `desktop` job builds the app on macOS, Windows and Linux, uploads the installers as artifacts and, on Linux, runs the desktop end-to-end tests.
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on every push and pull request. The `test` job runs the unit tests, the build, the no-network check and the web end-to-end tests. The `desktop` job builds the app on macOS, Windows and Linux, runs the Rust tests, uploads the installers as artifacts and, on Linux, runs the desktop end-to-end tests. Only `test` is required to merge today; Sprint 2 makes the desktop jobs required too.
 
 ## Project structure
 
@@ -110,7 +111,7 @@ CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on every push a
 ├── scripts/
 │   └── check-no-network.sh  fails on network-capable Rust crates or plugins
 ├── playwright.config.ts     web e2e config (Chromium and WebKit)
-├── docs/                    architecture, privacy, adding a tool, product notes
+├── docs/                    architecture, privacy, adding a tool
 ├── .github/workflows/ci.yml tests, builds and desktop installers on every push and PR
 ├── ROADMAP.md               milestones and sprints
 ├── CHANGELOG.md             release notes
@@ -123,24 +124,25 @@ CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on every push a
 - [Architecture](docs/ARCHITECTURE.md): the tool contract, UI, CSP, testing and known limitations.
 - [Privacy](docs/PRIVACY.md): what happens to your data and how to verify it.
 - [Adding a tool](docs/ADDING-A-TOOL.md): step-by-step guide with a worked example.
-- [Product notes](docs/PRODUCT.md) (internal): users, positioning and pricing.
 - [Roadmap](ROADMAP.md) and [changelog](CHANGELOG.md).
 
 ## Roadmap
 
-- **v0.2 Desktop (in progress):** Tauri app for macOS, Windows and Linux (Sprint 1 done), then a command palette, global shortcut and signed builds.
-- **v0.3 Tools:** 23 more tools on a richer tool contract.
-- **v1.0 Paid launch:** one-time and team licenses, validated offline.
+- **v0.2 Desktop you can verify (in progress):** Tauri app for macOS, Windows and Linux (Sprint 1 done), then checks that fail closed, tool contract v2 with an off-thread runner, a command palette, global shortcut, and signed builds with checksums and SBOMs.
+- **v0.3 Paste-safe inspectors:** JWT, secret redaction, HAR, SAML and X.509 tools first, then the planned data, text, converter and generator tools.
+- **v1.0 Launch:** offline license keys with no activation server, managed settings and enterprise installers, Flatpak and Snap builds with no network access, Portuguese and Spanish.
+- **v1.x (planned):** a command-line tool with no network access, and in-memory pipelines.
 
-Each milestone is broken into two-week sprints with acceptance criteria in [ROADMAP.md](ROADMAP.md).
+Each milestone is broken into two-week sprints with acceptance criteria in [ROADMAP.md](ROADMAP.md), which also lists what is [not planned](ROADMAP.md#not-planned) and why.
 
 ## Non-goals
 
 - No network features: no cloud sync, accounts, sharing, telemetry, analytics or crash reporting.
 - No AI or machine-learning features.
-- No security tooling: nothing that cracks, brute-forces or bypasses anything. The planned JWT decoder only decodes.
-- No stored input. Only settings will be saved (planned: last tool and window size).
+- No security tooling: nothing that cracks, brute-forces or bypasses anything. The planned JWT, SAML and certificate tools only decode, and the redaction tools only mask.
+- No features built to process other people's personal data. Tools only transform what you paste, in memory.
+- No stored input. Only the settings in the documented schema will be saved (planned, see [PRIVACY.md](docs/PRIVACY.md#what-will-be-saved-planned)).
 
 ## Ownership and license
 
-Created and solely owned by Bruno Brizolara as a personal project. It contains no code from any employer, client or company. Proprietary, all rights reserved; see [LICENSE](LICENSE).
+Created and solely owned by Bruno Brizolara as a personal project. It contains no code from any employer, client or company. The source is public so it can be reviewed, but it is not open source: proprietary, all rights reserved; see [LICENSE](LICENSE).

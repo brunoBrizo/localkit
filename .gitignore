@@ -5,3 +5,8 @@ dist
 .claude/
 test-results/
 playwright-report/
+
+# Local-only: business notes and research, never committed
+private/
+research_notes/
+reports/
