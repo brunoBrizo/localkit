@@ -6,6 +6,10 @@ Notable changes to LocalKit. The format follows [Keep a Changelog](https://keepa
 
 ### Added
 
+- Desktop app (Tauri 2) for macOS, Windows and Linux, with its own icon. It uses the same CSP as the web build, grants the page no Tauri permissions, has no plugins, and refuses navigation to any URL outside the app.
+- `npm run check:no-network`: fails if an HTTP client, a TLS stack or a network plugin enters the desktop app's dependencies.
+- Tests: CSP parity between web and desktop (Vitest), navigation guard unit tests (Rust), web end-to-end tests in Chromium and WebKit (Playwright), and desktop end-to-end tests on Linux (tauri-driver).
+- CI builds the desktop installers on macOS, Windows and Linux and uploads them as artifacts.
 - Documentation: architecture, privacy, adding a tool, product notes, and a sprint-based roadmap.
 - JSDoc on `Tool` and `runTool`, and comments on the timestamp heuristic and Base64 decoding. No behavior change.
 
